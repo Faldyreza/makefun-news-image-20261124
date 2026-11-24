@@ -229,6 +229,7 @@ const GLYPHS: Record<string, Glyph> = {
   "/": { a: 8, d: "M8,0 L2,10" },
   "%": { a: 11, d: "M9,0 L1,10 M1.5,1.5 L3.5,1.5 L3.5,3.5 L1.5,3.5 M6.5,6.5 L8.5,6.5 L8.5,8.5 L6.5,8.5" },
   $: { a: 10, d: "M9,2 Q7,0 5,0 Q1,0 1,2.5 Q1,5 5,5 Q9,5 9,7.5 Q9,10 5,10 Q3,10 1,8 M5,-1 L5,11" },
+  "&": { a: 10, d: "M8,2 Q8,0 5,0 Q2,0 2,2.5 Q2,5 5,5 Q8,5 8,7.5 Q8,10 5,10 Q2,10 1,8 M5,5 L9,10" },
   "+": { a: 9, d: "M5,2 L5,8 M2,5 L8,5" },
   "\u2022": { a: 7, d: "M3.5,3.5 L6.5,3.5 L6.5,6.5 L3.5,6.5" },
   "=": { a: 9, d: "M1,3.5 L9,3.5 M1,6.5 L9,6.5" },
@@ -245,30 +246,36 @@ function parseGlyph(d: string): Array<Array<[number, number]>> {
   let cur: Array<[number, number]> | null = null;
   const toks = d.trim().split(/\s+/);
   let i = 0;
+  let cmd = "";
   while (i < toks.length) {
-    const t = toks[i];
-    if (t === "M") {
-      const [x, y] = toks[i + 1].split(",").map(Number);
+    let t = toks[i];
+    // Command letter is attached to its first coordinate pair: "M0,10", "Q10,0".
+    const m = /^([MLQ])(.+)$/.exec(t);
+    if (m) {
+      cmd = m[1];
+      t = m[2];
+    }
+    const [x, y] = t.split(",").map(Number);
+    if (cmd === "M") {
       cur = [[x, y]];
       subs.push(cur);
-      i += 2;
-    } else if (t === "L") {
-      const [x, y] = toks[i + 1].split(",").map(Number);
+      i += 1;
+    } else if (cmd === "L") {
       if (cur) cur.push([x, y]);
-      i += 2;
-    } else if (t === "Q") {
-      const [cx, cy] = toks[i + 1].split(",").map(Number);
-      const [x, y] = toks[i + 2].split(",").map(Number);
+      i += 1;
+    } else if (cmd === "Q") {
+      // control point is (x, y); the end point is the next bare token
+      const [ex, ey] = toks[i + 1].split(",").map(Number);
       if (cur) {
         const p0 = cur[cur.length - 1];
         for (let s = 1; s <= 10; s++) {
           const u = s / 10;
-          const mx = (1 - u) * (1 - u) * p0[0] + 2 * (1 - u) * u * cx + u * u * x;
-          const my = (1 - u) * (1 - u) * p0[1] + 2 * (1 - u) * u * cy + u * u * y;
+          const mx = (1 - u) * (1 - u) * p0[0] + 2 * (1 - u) * u * x + u * u * ex;
+          const my = (1 - u) * (1 - u) * p0[1] + 2 * (1 - u) * u * y + u * u * ey;
           cur.push([mx, my]);
         }
       }
-      i += 3;
+      i += 2;
     } else {
       i += 1;
     }
@@ -446,7 +453,7 @@ function drawPage(): void {
   const M = 28;
 
   // ---- masthead (compressed a touch vs v2 so the footer can breathe)
-  drawText("THE WORLD", 512, 8, 116, INK, "center", 0.1);
+  drawText("THE WORLD", 512, 10, 116, INK, "center", 0.1);
   drawText("TUESDAY, 24 NOVEMBER 2026  \u2022  IN ONE IMAGE", 512, 100, 20, INK, "center", 0.12);
   rule(122, 3);
   rule(128, 1);
@@ -507,7 +514,7 @@ function drawPage(): void {
   // mines
   mine(348, 398, 9);
   mine(648, 404, 9);
-  mine(948, 380, 8);
+  mine(958, 348, 8);
   // waves
   wave(40, 980, 372, 3, WHITE);
   wave(60, 960, 392, 3, [190, 220, 232]);
@@ -723,7 +730,7 @@ function drawPage(): void {
     ["GAZA", "ISRAELI STRIKES KILL AT LEAST 3, INCLUDING UNRWA WORKER AT JABALIA WELL."],
     ["INDONESIA", "26 BODIES IDENTIFIED, 28 STILL MISSING AFTER BANTEN FACTORY FIRE."],
     ["MEGASPEED", "US BLACKLISTS 7 FIRMS IN NVIDIA SPY CASE."],
-    ["ZELENSKY", "SEEKS FOUR-WAY TALKS WITH RUSSIA, US AND EUROPE \u201cAS SOON AS POSSIBLE\u201d."],
+    ["ZELENSKY", "SEEKS FOUR-WAY TALKS WITH RUSSIA, US, EUROPE, \u201cAS SOON AS POSSIBLE\u201d."],
     ["SOUTH KOREA", "RUSSIAN PLANE ENTERS AIR DEFENCE ZONE; JETS SCRAMBLED."],
     ["BANGLADESH", "MASS TYPHOID VACCINATION OF 50 MILLION CHILDREN BEGINS."],
   ];
