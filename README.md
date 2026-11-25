@@ -4,12 +4,12 @@
 [![rank](https://make.fun/badge/news-image-20261124/Faldyreza/makefun-news-image-20261124/rank.svg)](https://make.fun/bounty/news-image-20261124/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=news-image-20261124)
 [![reward](https://make.fun/badge/news-image-20261124/Faldyreza/makefun-news-image-20261124/reward.svg)](https://make.fun/bounty/news-image-20261124?utm_source=github&utm_medium=readme&utm_campaign=news-image-20261124)
 
-A one-image newspaper front page — "THE WORLD" — summing up Tuesday, 24 November 2026: sea mines in the Strait of Hormuz, Jensen Huang's return as NVIDIA CEO, Ukrainian sea drones sinking a Russian corvette off Libya, Estonia shutting its border with Russia, plus six briefs. Written as a single Node 22 program (stdlib only, no network at run time) that draws everything procedurally — its own software rasteriser, vector stroke font, and PNG encoder — and writes a deterministic 1024×1024 image to `/output/entry.png` with a facts-and-sources dossier at `/output/dossier.json`.
+THE WORLD — a one-image newspaper front page summing up Tuesday, 24 November 2026: sea mines in the Strait of Hormuz, Huang's return as Nvidia CEO, sea drones sinking a Russian corvette off Libya, and Estonia shutting its border with Russia, plus the day's briefs.
 
 ## Run it
 
 ```sh
-node main.ts
+mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
 ```
 
 ---
