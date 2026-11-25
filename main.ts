@@ -33,6 +33,8 @@ function px(x, y, rgb, a) {
   buf[i + 2] = Math.round(buf[i + 2] * na + rgb[2] * a);
 }
 function disc(cx, cy, r, rgb, a) {
+  // Final (1024) coords in, supersampled buffer out.
+  cx *= SS; cy *= SS; r *= SS;
   const x0 = Math.max(0, Math.floor(cx - r)), x1 = Math.min(SW - 1, Math.ceil(cx + r));
   const y0 = Math.max(0, Math.floor(cy - r)), y1 = Math.min(SH - 1, Math.ceil(cy + r));
   const r2 = r * r;
@@ -42,9 +44,8 @@ function disc(cx, cy, r, rgb, a) {
   }
 }
 function line(x1, y1, x2, y2, w, rgb, a) {
-  x1 *= SS; y1 *= SS; x2 *= SS; y2 *= SS; w *= SS;
   const dx = x2 - x1, dy = y2 - y1, len = Math.hypot(dx, dy);
-  const steps = Math.max(1, Math.ceil(len / 0.6));
+  const steps = Math.max(1, Math.ceil(len / 0.5));
   const r = w / 2;
   for (let i = 0; i <= steps; i++) {
     const t = i / steps;
@@ -157,7 +158,7 @@ const RAW = {
   j: [4.5, "6.5,3.2 6.5,11 5,12.8 3,12.8"],
   k: [8.5, "1.5,0 1.5,10;8.5,3.2 2,6.5;4,5.5 8.5,10"],
   l: [4, "5,0 5,10"],
-  m: [12.5, "1.5,10 1.5,3.5 3.5,3.2 5,5.5 5,3.5 7,3.2 8.5,5 8.5,10"],
+  m: [11, "1.5,10 1.5,3.5 3.5,3.2 5,5.5 5,3.5 7,3.2 8.5,5 8.5,10"],
   n: [8.5, "1.5,10 1.5,3.5 3.5,3.2 6.5,3.2 8.5,5 8.5,10"],
   o: [8.5, null],
   p: [8.5, "1.5,3.2 1.5,13;1.5,6 3.5,3.5 6.5,3.5 8.5,5.5 8.5,7.5 7,9.8 4.5,10 2.2,8.5"],
@@ -167,7 +168,7 @@ const RAW = {
   t: [5.5, "5,0.8 5,8.5 3.8,9.8 2.5,9.8;2,4 7.5,4"],
   u: [8.5, "1.5,3.2 1.5,8 3,9.8 6,9.8 8.5,8 8.5,3.2"],
   v: [8.5, "1,3.2 5,10 9,3.2"],
-  w: [12, "0.5,3.2 2.5,10 5,5 7.5,10 9.5,3.2"],
+  w: [11, "0.5,3.2 2.5,10 5,5 7.5,10 9.5,3.2"],
   x: [8.5, "1.5,3.2 8.5,10;8.5,3.2 1.5,10"],
   y: [8.5, "1,3.2 4.5,9 8.5,3.2;4.5,9 4.5,12 3,13"],
   z: [8, "1.5,3.2 8.5,3.2 1.5,10 8.5,10"],
@@ -183,6 +184,7 @@ const RAW = {
   ".": [4.5, "4.5,9.6 5.5,9.6"], ",": [4.5, "5,9.5 4,11.5 3,12.5;4.5,9.6 5.5,9.6"],
   ":": [4.5, "4.6,3.4 5.4,3.4;4.6,8.4 5.4,8.4"], ";": [4.5, "4.6,3.4 5.4,3.4;5,8.5 4,10.5 3,11.5"],
   "'": [4, "5.5,0 4.5,2.5"], '"': [6, "4,0 3,2.5;7,0 6,2.5"],
+  "‘": [4, "4.5,0 5.5,2.5"], "’": [4, "5.5,0 4.5,2.5"],
   "!": [4.5, "5,0 5,7;4.6,9.4 5.4,9.4"],
   "?": [8.5, "2,2.5 3.5,0.5 6.5,0.5 8,2 8,3.5 6.5,5 5,5.5 5,7;4.6,9.4 5.4,9.4"],
   "-": [7, "1.5,5.5 8.5,5.5"], "—": [11, "0.5,5.5 9.5,5.5"],
@@ -245,8 +247,12 @@ function drawText(s, x, yTop, size, o) {
     if (ch === " ") { cx += SPACE_ADV * xs * sc + track; continue; }
     const g = GLYPHS[ch];
     if (!g) { cx += 9 * xs * sc + track; continue; }
+    // Centre the glyph inside its advance slot: narrow glyphs (i, l, t)
+    // are drawn near x=5 of a 10-unit cell, which otherwise leaves a
+    // visible gap after wide letters (m, w) and before the stem.
+    const off = (g.adv - 10) / 2;
     for (const stroke of g.strokes) {
-      const pts = stroke.map(p => [cx + p[0] * xs * sc, yTop + p[1] * sc]);
+      const pts = stroke.map(p => [cx + (p[0] + off) * xs * sc, yTop + p[1] * sc]);
       polyline(pts, size * wgt, col, 1);
     }
     if (o.serif) {
@@ -262,7 +268,7 @@ function drawText(s, x, yTop, size, o) {
               const key = p[0].toFixed(1) + "," + p[1].toFixed(0);
               if (seen.has(key)) continue;
               seen.add(key);
-              const fx = cx + p[0] * xs * sc, fy = yTop + p[1] * sc;
+              const fx = cx + (p[0] + off) * xs * sc, fy = yTop + p[1] * sc;
               line(fx - size * 0.085, fy, fx + size * 0.085, fy, size * 0.075, col, 1);
             }
           }
@@ -302,21 +308,26 @@ function pill(text, x, y, size, bg, fg) {
 // All puffs end above the horizon line passed in.
 // ---------------------------------------------------------------------------
 function plume(cx, baseY, topY, spread, big) {
-  const n = big ? 16 : 11;
   // Flame at the base first.
   const flame = hx("#f08a1d"), flame2 = hx("#f7c948");
   fillPoly([[cx - 9, baseY], [cx - 4, baseY - 16], [cx + 1, baseY - 24], [cx + 6, baseY - 14], [cx + 10, baseY], [cx, baseY + 2]], flame, 1);
   fillPoly([[cx - 5, baseY], [cx - 2, baseY - 11], [cx + 2, baseY - 15], [cx + 5, baseY - 9], [cx + 5, baseY]], flame2, 1);
   // Smoke puffs: rising, widening, jittered — an irregular cloud, not beads.
+  // More puffs, smaller and more overlapping than v4, so no single circle
+  // reads as a balloon; elliptical puffs + varied alpha blend the edges.
+  // A faint broad wash behind the puffs unifies the cloud so individual
+  // circles stop reading as balloons.
+  ellipse(cx + spread * 0.12, (baseY + topY) / 2, spread * 0.62, (baseY - topY) * 0.52, hx("#a9aeb1"), 0.28);
   const grays = [hx("#8d9296"), hx("#a7adb0"), hx("#7b8084"), hx("#b9bec1")];
+  const n = big ? 20 : 13;
   for (let i = 0; i < n; i++) {
     const t = i / (n - 1);
     const y = baseY - 6 - t * (baseY - topY) + rr(-3, 3);
     const drift = Math.sin(t * 2.2) * spread * 0.35 + rr(-spread * 0.28, spread * 0.28);
     const x = cx + drift + (t > 0.6 ? rr(-4, 10) : rr(-6, 4));
-    const r = (big ? 7 : 5) + t * (big ? 13 : 9) + rr(-2.5, 3.5);
+    const r = (big ? 6 : 4.5) + t * (big ? 11 : 8) + rr(-2, 3);
     const g = grays[Math.floor(rr(0, grays.length)) % grays.length];
-    ellipse(x, y, r, r * rr(0.72, 0.95), g, 0.55 + rr(0, 0.25));
+    ellipse(x, y, r * rr(1.1, 1.45), r * rr(0.68, 0.92), g, 0.45 + rr(0, 0.25));
   }
   // Dark debris specks inside the cloud.
   for (let i = 0; i < (big ? 9 : 5); i++) {
@@ -418,6 +429,7 @@ function drawLead() {
 
 function drawNvidia(x, y, w) {
   // Chip + rising chart.
+  pill("TECHNOLOGY", x + 4, y + 2, 12.5, NAVY, hx("#ffffff"));
   const chipX = x + 22, chipY = y + 26, cs = 62;
   rect(chipX, chipY, cs, cs, hx("#76b900"), 1);
   rect(chipX + 8, chipY + 8, cs - 16, cs - 16, hx("#5a9400"), 1);
@@ -500,14 +512,14 @@ function drawEstonia(x, y, w) {
     const x0 = sx, x1 = Math.min(sx + 8, bx1);
     fillPoly([[x0, by], [x1, by], [x1 - 6, by + bh], [x0 - 6, by + bh]], hx("#c0392b"), 1);
   }
-  rect(bx0, by, bx1 - bx0, bh, hx("#000000"), 0); // no-op keep for clarity
   rect(bx0 - 2, by - 2, bx1 - bx0 + 4, 2, INK, 1);
   rect(bx0 - 2, by + bh, bx1 - bx0 + 4, 2, INK, 1);
   rect(bx0 + 6, by + bh, 8, postEnd - (by + bh), INK, 1);
   rect(bx1 - 14, by + bh, 8, postEnd - (by + bh), INK, 1);
-  // Labels 18 px below the post ends.
-  drawText("ESTONIA", x + 96, postEnd + 18, 15, { weight: 0.12 });
-  drawText("RUSSIA", x + w - 96, postEnd + 18, 15, { align: "right", weight: 0.12 });
+  // Labels 18 px below the post ends, kept apart so they cannot touch.
+  drawText("ESTONIA", x + 30, postEnd + 18, 13, { weight: 0.12 });
+  drawText("RUSSIA", x + w - 30, postEnd + 18, 13, { align: "right", weight: 0.12 });
+  pill("EUROPE", x + w - 78, y + 2, 12.5, NAVY, hx("#ffffff"));
 }
 
 function drawSecondary() {
@@ -518,16 +530,15 @@ function drawSecondary() {
   ];
   const pw = 300;
   for (const c of cols) {
-    pill(c.tag, c.x, 600, 12.5, NAVY, hx("#ffffff"));
-    c.draw(c.x, 620, pw);
+    c.draw(c.x, 612, pw);
     const hl = wrapText(c.head, pw, 21, 0.72);
-    let hy = 728;
+    let hy = 724;
     for (const ln of hl) {
       drawText(ln, c.x, hy, 21, { weight: 0.13 });
       hy += 26;
     }
     const fl = wrapText(c.facts, pw, 16.5, 0.72);
-    let fy = 786;
+    let fy = 780;
     for (const ln of fl) {
       const w = drawText(ln, c.x, fy, 16.5, { weight: 0.11 });
       console.log("W sec-fact " + JSON.stringify(ln) + " width=" + Math.round(w));
@@ -535,32 +546,32 @@ function drawSecondary() {
     }
     console.log("W sec head=" + JSON.stringify(c.head) + " lines=" + hl.length + " factLines=" + fl.length);
   }
-  rule(866, 2);
+  rule(858, 2);
 }
 
 function drawBriefs() {
-  drawText("IN BRIEF", X0, 878, 19, { weight: 0.13 });
+  drawText("IN BRIEF", X0, 870, 19, { weight: 0.13 });
   const items = [
     "GAZA — Israeli strikes kill at least 3, incl. UNRWA worker Adel al-Helo",
     "INDONESIA — 26 body bags identified, 28 still missing after Banten factory fire",
-    "MEGASPEED — US blacklists 7 firms in Nvidia spy case",
+    "MEGASPEED — US blacklists 7 firms in Nvidia case",
     "ZELENSKY — Urges 4-way Russia–US–Europe talks \u2018as soon as possible\u2019",
     "S. KOREA — Russian jets enter air defence zone; fighters scrambled",
     "BANGLADESH — Mass typhoid vaccination of 50m children begins"
   ];
   const colW = 458, colX = [X0, X0 + 478];
   items.forEach((it, i) => {
-    const cx = colX[i % 2], cy = 904 + Math.floor(i / 2) * 44;
-    const lines = wrapText(it, colW, 17.5, 0.72);
+    const cx = colX[i % 2], cy = 890 + Math.floor(i / 2) * 40;
+    const lines = wrapText(it, colW, 16.5, 0.72);
     let ly = cy;
     for (const ln of lines) {
-      const w = drawText(ln, cx, ly, 17.5, { weight: 0.11 });
+      const w = drawText(ln, cx, ly, 16.5, { weight: 0.11 });
       console.log("W brief " + JSON.stringify(ln) + " width=" + Math.round(w));
-      ly += 22;
+      ly += 19;
     }
     console.log("W brief-item lines=" + lines.length + " " + JSON.stringify(it));
   });
-  drawText("Sources: Reuters · AP · AFP · The Times · Le Monde · TRENDS MENA · JMIC · UNSMIL — 24 Nov 2026", CX, 998, 11, { align: "center", color: MUTED, weight: 0.11 });
+  drawText("Sources: Reuters · AP · AFP · The Times · Le Monde · TRENDS MENA · JMIC · UNSMIL — 24 Nov 2026", CX, 1010, 9.5, { align: "center", color: MUTED, weight: 0.11 });
 }
 
 // ---------------------------------------------------------------------------
