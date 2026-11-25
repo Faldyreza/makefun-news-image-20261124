@@ -301,7 +301,11 @@ interface TextOpts {
 function glyphW(ch: string, size: number, xs: number): number {
   if (ch === " ") return size * 0.42 * xs;
   if (ch === "i" || ch === "l" || ch === "j" || ch === "!" || ch === "." || ch === "," || ch === ":" || ch === ";" || ch === "'" || ch === "|") return size * 0.42 * xs;
-  if (ch === "m" || ch === "M" || ch === "W" || ch === "w" || ch === "%") return size * 0.98 * xs;
+  if (ch === "m" || ch === "M" || ch === "w") return size * 0.72 * xs;
+  if (ch === "W") return size * 0.75 * xs;
+  if (ch === "%") return size * 0.8 * xs;
+  if (ch === "1") return size * 0.55 * xs;
+  if (ch === "f") return size * 0.62 * xs;
   return size * 0.68 * xs;
 }
 
@@ -318,15 +322,18 @@ function drawGlyph(ch: string, x: number, yTop: number, o: TextOpts) {
   const size = o.size, xs = o.xs ?? 1, w = o.weight ?? size * 0.11;
   const c = o.color ?? INK;
   const sc = size / 10; // grid unit -> px (cap height 10 units)
+  // Narrow the 10-unit grid to 6 units: glyphs span x 1..9, so a 0.68
+  // advance would overlap; after narrowing the span is 6 units < 6.8.
+  const tx = (gx: number) => 1 + (gx - 1) * 0.75;
   for (const stroke of g) {
-    const pts = stroke.map(([gx, gy]) => [x + gx * sc * xs, yTop + (gy - 1) * sc] as Pt);
+    const pts = stroke.map(([gx, gy]) => [x + tx(gx) * sc * xs, yTop + (gy - 1) * sc] as Pt);
     if (pts.length === 1) { disc(pts[0][0], pts[0][1], Math.max(w * 0.9, 1.1), c); continue; }
     polyline(pts, w, c);
   }
   if (o.serif && /[A-Z]/.test(ch)) {
     const feet = FEET[ch];
     if (feet) for (const [x1, x2, gy] of feet) {
-      line(x + x1 * sc * xs, yTop + (gy - 1) * sc, x + x2 * sc * xs, yTop + (gy - 1) * sc, Math.max(w * 0.85, 1), c);
+      line(x + tx(x1) * sc * xs, yTop + (gy - 1) * sc, x + tx(x2) * sc * xs, yTop + (gy - 1) * sc, Math.max(w * 0.85, 1), c);
     }
   }
 }
@@ -462,24 +469,24 @@ function lead() {
   tanker(716, 322, 150, 20, -1);
   // middle tanker: flame at the bow (right end of deck), plume rising up-LEFT
   // from mid-deck so the flame stays fully visible
-  flame(592, 352, 9);
-  flame(560, 352, 6);
-  smoke(468, 306, 9, 3);
+  flame(590, 352, 12);
+  flame(540, 352, 7);
+  smoke(468, 344, 10, 3);
   // mines
   mine(300, 428, 7); mine(648, 420, 6); mine(766, 440, 6); mine(884, 424, 6);
   // strait pill
   labelPill("STRAIT OF HORMUZ", 470, 446, { size: 15, weight: 2, xs: 0.9, track: 1 }, WHITE, INK);
   // lead facts (line 3 reflowed shorter than v7's 86 chars, with right margin)
   const f = { size: 19, weight: 2, xs: 0.72 };
-  drawText("IRGC says three tankers hit by sea mines in the Strait of Hormuz.", MX, 486, f);
-  drawText("Tankers burning under U.S. air escort; claim not independently verified.", MX, 507, f);
-  drawText("Qatar mediates in Washington; U.S. sanctions Iran shadow banking, $14.7bn.", MX, 528, f);
-  hline(MX, MX + CW, 556, 2, RULE);
+  drawText("IRGC says three tankers hit by sea mines in the Strait of Hormuz.", MX, 480, f);
+  drawText("Tankers burning under U.S. air escort; claim not independently verified.", MX, 506, f);
+  drawText("Qatar mediates in Washington; U.S. sanctions Iran shadow banking, $14.7bn.", MX, 532, f);
+  hline(MX, MX + CW, 566, 2, RULE);
 }
 
 function panelKicker(text: string, x: number) {
-  drawText(text, x, 572, { size: 15, weight: 2.4, xs: 0.95, track: 2.5, color: RED });
-  hline(x, x + 310, 594, 1.5, RULE);
+  drawText(text, x, 576, { size: 15, weight: 2.4, xs: 0.95, track: 2.5, color: RED });
+  hline(x, x + 310, 600, 1.5, RULE);
 }
 
 function panelHeadline(l1: string, l2: string, x: number) {
@@ -488,9 +495,9 @@ function panelHeadline(l1: string, l2: string, x: number) {
 }
 
 function panelFact(text: string, x: number) {
-  const o = { size: 17.5, weight: 2, xs: 0.72 };
+  const o = { size: 16.5, weight: 2, xs: 0.72 };
   const lines = wrap(text, o, 310);
-  drawLines(lines, x, 786, o, 21);
+  drawLines(lines, x, 786, o, 22);
   return lines.length;
 }
 
@@ -498,19 +505,19 @@ function nvidia() {
   const x = MX;
   panelKicker("TECHNOLOGY", x);
   // chip
-  rect(48, 622, 116, 68, CHIP);
+  rect(48, 630, 116, 68, CHIP);
   for (let i = 0; i < 4; i++) {
-    hline(36, 48, 634 + i * 14, 3, CHIP_LT);
-    hline(164, 176, 634 + i * 14, 3, CHIP_LT);
+    hline(36, 48, 642 + i * 14, 3, CHIP_LT);
+    hline(164, 176, 642 + i * 14, 3, CHIP_LT);
   }
-  drawText("NVDA", 106, 646, { size: 20, weight: 2.4, xs: 0.9, color: WHITE, align: "center" });
+  drawText("NVDA", 106, 654, { size: 20, weight: 2.4, xs: 0.9, color: WHITE, align: "center" });
   // rising chart
-  line(196, 692, 196, 612, 2, INK);
-  line(196, 692, 330, 692, 2, INK);
-  const pts: Pt[] = [[204, 684], [236, 660], [268, 664], [300, 636], [326, 614]];
+  line(196, 700, 196, 620, 2, INK);
+  line(196, 700, 330, 700, 2, INK);
+  const pts: Pt[] = [[204, 692], [236, 668], [268, 672], [300, 644], [326, 622]];
   polyline(pts, 3, GREEN);
   for (const p of pts) disc(p[0], p[1], 2.6, GREEN);
-  drawText("+33%", 232, 596, { size: 28, weight: 3.4, xs: 0.9, color: GREEN });
+  drawText("+33%", 232, 604, { size: 28, weight: 3.4, xs: 0.9, color: GREEN });
   panelHeadline("HUANG RETURNS AS", "NVIDIA CEO", x);
   panelFact("Huang returns 11 days after exit; shares +33%, Nasdaq +6%, S&P +4%.", x);
 }
@@ -518,10 +525,10 @@ function nvidia() {
 function libya() {
   const x = 357;
   panelKicker("LIBYA", x);
-  rect(x, 596, 310, 120, SEA);
+  rect(x, 606, 310, 110, SEA);
   for (let i = 0; i < 4; i++) hline(x + 14 + i * 70, x + 60 + i * 70, 706 - i * 4, 1.5, SEA_LIGHT);
   // smoke plume above the corvette, drifting left
-  smoke(516, 648, 7, 5);
+  smoke(516, 672, 7, 5);
   // corvette, 292 px wide (physical limit of the 310 px panel)
   fillPoly([[366, 678], [658, 678], [650, 694], [374, 694]], HULL);
   rect(372, 672, 280, 6, DECK);
@@ -543,7 +550,7 @@ function libya() {
   disc(626, 690, 2.4, RED);
   for (let i = 0; i < 6; i++) disc(588 - i * 12, 706 + (i % 2) * 2, 1.6, SEA_LIGHT);
   panelHeadline("SEA DRONES SINK", "RUSSIAN CORVETTE", x);
-  panelFact("Seven drones sank corvette Merkury off Benghazi; MV Angara hit, Ka-27 destroyed.", x);
+  panelFact("Seven drones sank Merkury off Benghazi; MV Angara hit, Ka-27 destroyed.", x);
 }
 
 function estonia() {
@@ -551,45 +558,45 @@ function estonia() {
   panelKicker("ESTONIA", x);
   // mini schematic map fills the panel's middle area: coastline, dashed
   // border, Tallinn dot, 1 DEC tag
-  rect(700, 600, 150, 74, WHITE);
-  rect(700, 600, 150, 2, INK); rect(700, 672, 150, 2, INK);
-  rect(700, 600, 2, 74, INK); rect(848, 600, 2, 74, INK);
-  fillPoly([[700, 674], [850, 674], [850, 646], [820, 636], [770, 644], [730, 656], [700, 660]], SAND);
-  polyline([[700, 660], [730, 656], [770, 644], [820, 636], [850, 646]], 2, SEA_DARK);
-  for (let i = 0; i < 5; i++) line(712 + i * 26, 628, 730 + i * 26, 628, 2, RED);
-  disc(782, 648, 3.4, RED);
-  drawText("TALLINN", 790, 641, { size: 10, weight: 1.4, xs: 0.85 });
-  rect(812, 654, 32, 14, RED);
-  drawText("1 DEC", 828, 657, { size: 10, weight: 1.6, xs: 0.85, color: WHITE, align: "center" });
+  rect(700, 606, 150, 74, WHITE);
+  rect(700, 606, 150, 2, INK); rect(700, 678, 150, 2, INK);
+  rect(700, 606, 2, 74, INK); rect(848, 606, 2, 74, INK);
+  fillPoly([[700, 680], [850, 680], [850, 652], [820, 642], [770, 650], [730, 662], [700, 666]], SAND);
+  polyline([[700, 666], [730, 662], [770, 650], [820, 642], [850, 652]], 2, SEA_DARK);
+  for (let i = 0; i < 5; i++) line(712 + i * 26, 634, 730 + i * 26, 634, 2, RED);
+  disc(782, 654, 3.4, RED);
+  drawText("TALLINN", 790, 647, { size: 10, weight: 1.4, xs: 0.85 });
+  rect(764, 660, 32, 14, RED);
+  drawText("1 DEC", 780, 663, { size: 10, weight: 1.6, xs: 0.85, color: WHITE, align: "center" });
   // border barrier across the lower band
-  rect(x, 684, 310, 32, [200, 196, 188]);
-  rect(828, 660, 4, 56, INK);
+  rect(x, 690, 310, 26, [200, 196, 188]);
+  rect(828, 666, 4, 50, INK);
   for (let i = 0; i < 6; i++) {
-    const ax = 832 + i * 20, ay = 668 - i * 3;
+    const ax = 832 + i * 20, ay = 674 - i * 3;
     line(ax, ay, ax + 20, ay - 3, 5, i % 2 === 0 ? RED : WHITE);
   }
-  fillPoly([[962, 654], [972, 632], [982, 654]], YELLOW);
-  line(962, 654, 982, 654, 2, INK);
-  drawText("!", 972, 636, { size: 14, weight: 2, align: "center" });
-  drawText("ESTONIA", 700, 692, { size: 13, weight: 2, xs: 0.9 });
-  drawText("RUSSIA", 852, 692, { size: 13, weight: 2, xs: 0.9 });
+  fillPoly([[962, 660], [972, 638], [982, 660]], YELLOW);
+  line(962, 660, 982, 660, 2, INK);
+  drawText("!", 972, 642, { size: 14, weight: 2, align: "center" });
+  drawText("ESTONIA", 700, 698, { size: 13, weight: 2, xs: 0.9 });
+  drawText("RUSSIA", 852, 698, { size: 13, weight: 2, xs: 0.9 });
   panelHeadline("RUSSIA WARNS ESTONIA", "OVER BORDER CLOSURE", x);
-  panelFact("Tallinn shuts border from 1 Dec; Moscow: 'on the verge of triggering open war'.", x);
+  panelFact("Shuts border 1 Dec; Moscow: 'on the verge of triggering open war'.", x);
 }
 
 function briefItem(x: number, y: number, label: string, text: string, maxW: number) {
-  const o = { size: 17.5, weight: 2, xs: 0.72 };
+  const o = { size: 17, weight: 2, xs: 0.72 };
   const lw = textW(label + " — ", o);
   const lines = wrap(text, o, maxW - lw);
   drawText(label, x, y, { ...o, weight: 2.8, color: RED });
   drawText("—", x + textW(label, o), y, o);
   drawText(lines[0], x + lw, y, o);
-  if (lines[1]) drawText(lines[1], x, y + 20, o);
+  if (lines[1]) drawText(lines[1], x, y + 19, o);
 }
 
 function briefs() {
-  hline(MX, MX + CW, 834, 2, RULE);
-  drawText("IN BRIEF", MX, 842, { size: 18, weight: 2.6, xs: 0.95, track: 2 });
+  hline(MX, MX + CW, 840, 2, RULE);
+  drawText("IN BRIEF", MX, 848, { size: 18, weight: 2.6, xs: 0.95, track: 2 });
   const items: [string, string][] = [
     ["GAZA", "Israeli strikes kill at least 3, including UNRWA worker in Jabalia."],
     ["INDONESIA", "26 body bags identified, 28 still missing after Banten candy factory fire."],
@@ -598,7 +605,7 @@ function briefs() {
     ["S. KOREA", "Russian aircraft enter air defence zone; jets scrambled."],
     ["BANGLADESH", "Mass typhoid vaccination of 50 million children begins."],
   ];
-  const ys = [872, 908, 944];
+  const ys = [872, 910, 948];
   items.forEach(([label, text], i) => {
     const col = i % 2, row = Math.floor(i / 2);
     briefItem(col === 0 ? MX : MX + 498, ys[row], label, text, 470);
