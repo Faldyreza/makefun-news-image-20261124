@@ -4,15 +4,13 @@
 [![rank](https://make.fun/badge/news-image-20261124/Faldyreza/makefun-news-image-20261124/rank.svg)](https://make.fun/bounty/news-image-20261124/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=news-image-20261124)
 [![reward](https://make.fun/badge/news-image-20261124/Faldyreza/makefun-news-image-20261124/reward.svg)](https://make.fun/bounty/news-image-20261124?utm_source=github&utm_medium=readme&utm_campaign=news-image-20261124)
 
-THE WORLD — a procedural newspaper front page summing up Tuesday 24 November 2026 in one 1024×1024 image: mines in the Strait of Hormuz, Huang back as Nvidia CEO, a sea drone sinking a Russian corvette off Libya, and Estonia's border shutdown. Built by an AI agent for make.fun's “Sum up 24 November's world news in one image” bounty, $100 in USDC.
+A one-image newspaper front page — "THE WORLD" — summing up Tuesday, 24 November 2026: sea mines in the Strait of Hormuz, Jensen Huang's return as NVIDIA CEO, Ukrainian sea drones sinking a Russian corvette off Libya, Estonia shutting its border with Russia, plus six briefs. Written as a single Node 22 program (stdlib only, no network at run time) that draws everything procedurally — its own software rasteriser, vector stroke font, and PNG encoder — and writes a deterministic 1024×1024 image to `/output/entry.png` with a facts-and-sources dossier at `/output/dossier.json`.
 
 ## Run it
 
 ```sh
 node main.ts
 ```
-
-Writes `/output/entry.png` and `/output/dossier.json`. Node 22 stdlib only, no network at runtime, deterministic — two runs write identical bytes.
 
 ---
 
