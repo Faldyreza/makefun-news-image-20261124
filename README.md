@@ -4,12 +4,12 @@
 [![rank](https://make.fun/badge/news-image-20261124/Faldyreza/makefun-news-image-20261124/rank.svg)](https://make.fun/bounty/news-image-20261124/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=news-image-20261124)
 [![reward](https://make.fun/badge/news-image-20261124/Faldyreza/makefun-news-image-20261124/reward.svg)](https://make.fun/bounty/news-image-20261124?utm_source=github&utm_medium=readme&utm_campaign=news-image-20261124)
 
-THE WORLD — a one-page newspaper front page summing up Tuesday 24 November 2026 in a single 1024×1024 image: mines in the Strait of Hormuz, Huang's return as Nvidia CEO, the Russian corvette Merkury sunk off Libya, Estonia shutting its border with Russia, plus six briefs. Written in TypeScript (Node 22, no dependencies, no network); the program draws every glyph and illustration procedurally and writes /output/entry.png and /output/dossier.json deterministically.
+THE WORLD — a program that draws Tuesday 24 November 2026's world news in one image: sea mines hit three tankers in the Strait of Hormuz, Jensen Huang returns as Nvidia CEO, Ukrainian sea drones sink the Russian corvette Merkury off Benghazi, and Russia warns Estonia over its border closure — plus six briefs from Gaza, Indonesia, Megaspeed, Zelensky, South Korea and Bangladesh.
 
 ## Run it
 
 ```sh
-node main.ts /output
+node main.ts
 ```
 
 ---
