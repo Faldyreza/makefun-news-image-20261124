@@ -196,7 +196,7 @@ function encodePNG(w: number, h: number, px: Uint8Array): Buffer {
   const raw = Buffer.alloc(h * (1 + w * 3));
   for (let y = 0; y < h; y++) {
     raw[y * (1 + w * 3)] = 0;
-    px.copy(raw, y * (1 + w * 3) + 1, y * w * 3, (y + 1) * w * 3);
+    raw.set(px.subarray(y * w * 3, (y + 1) * w * 3), y * (1 + w * 3) + 1);
   }
   const idat = zlib.deflateSync(raw, { level: 6 });
   const ihdr = Buffer.alloc(13);
@@ -391,20 +391,20 @@ const FONT_UPPER: Record<string, Glyph> = {
 
 const FONT_LOWER: Record<string, Glyph> = {
   a: [
-    [ellStroke(3.6, 6.6, 2.3, 3.3)],
+    ellStroke(3.6, 6.6, 2.3, 3.3),
     [[6, 3.2], [6, 10]],
     [[5.5, 10], [6.5, 10]],
   ],
   b: [
     [[1.1, 0], [1.1, 10]],
-    [ellStroke(3.9, 6.7, 2.2, 3.1)],
+    ellStroke(3.9, 6.7, 2.2, 3.1),
     [[0.6, 10], [1.7, 10]],
   ],
   c: [
     [[6, 4.6], [4.6, 3.2], [2.2, 3.5], [1, 5.6], [1.8, 8.2], [3.6, 9.6], [5.6, 9.3]],
   ],
   d: [
-    [ellStroke(3.1, 6.7, 2.2, 3.1)],
+    ellStroke(3.1, 6.7, 2.2, 3.1),
     [[6, 0], [6, 10]],
     [[5.5, 10], [6.5, 10]],
   ],
@@ -419,7 +419,7 @@ const FONT_LOWER: Record<string, Glyph> = {
     [[2.1, 10], [3.2, 10]],
   ],
   g: [
-    [ellStroke(3.5, 6.5, 2.3, 3.2)],
+    ellStroke(3.5, 6.5, 2.3, 3.2),
     [[6, 3.2], [6, 10], [5, 12.6], [3, 13], [1.8, 12]],
   ],
   h: [
@@ -458,10 +458,10 @@ const FONT_LOWER: Record<string, Glyph> = {
   o: [ellStroke(3.5, 6.6, 2.6, 3.4)],
   p: [
     [[1.1, 3.6], [1.1, 13]],
-    [ellStroke(3.9, 6.8, 2.2, 3.1)],
+    ellStroke(3.9, 6.8, 2.2, 3.1),
   ],
   q: [
-    [ellStroke(3.1, 6.8, 2.2, 3.1)],
+    ellStroke(3.1, 6.8, 2.2, 3.1),
     [[6, 3.6], [6, 13]],
   ],
   r: [
@@ -535,7 +535,7 @@ const FONT_DIGIT: Record<string, Glyph> = {
   // 8: two closed stacked loops (never a pinched single line).
   "8": [ellStroke(3.5, 2.9, 2.3, 2.7), ellStroke(3.5, 7.4, 2.7, 2.8)],
   "9": [
-    [ellStroke(3.5, 3.4, 2.5, 3.1)],
+    ellStroke(3.5, 3.4, 2.5, 3.1),
     [[6, 3.4], [6, 8], [5, 10], [3.5, 10.2]],
   ],
 };
@@ -561,8 +561,8 @@ const FONT_PUNCT: Record<string, Glyph> = {
     [[5.2, 0.4], [4.4, 2.6]],
   ],
   "%": [
-    [ellStroke(2, 2.4, 1.5, 1.9)],
-    [ellStroke(5, 7.6, 1.5, 1.9)],
+    ellStroke(2, 2.4, 1.5, 1.9),
+    ellStroke(5, 7.6, 1.5, 1.9),
     [[6.2, 0.4], [0.8, 9.6]],
   ],
   "+": [
